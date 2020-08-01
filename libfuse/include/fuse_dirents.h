@@ -35,49 +35,49 @@ extern "C" {
 #include <sys/types.h>
 #include <unistd.h>
 
-enum fuse_dirents_type_e
+  enum fuse_dirents_type_e
+    {
+      UNSET = 0,
+      NORMAL,
+      PLUS
+    };
+  typedef enum fuse_dirents_type_e fuse_dirents_type_t;
+
+  typedef struct fuse_dirents_s fuse_dirents_t;
+  struct fuse_dirents_s
   {
-    UNSET = 0,
-    NORMAL,
-    PLUS
+    char                *buf;
+    uint64_t             buf_len;
+    uint64_t             data_len;
+    kvec_t(uint32_t)     offs;
+    fuse_dirents_type_t  type;
   };
-typedef enum fuse_dirents_type_e fuse_dirents_type_t;
 
-typedef struct fuse_dirents_s fuse_dirents_t;
-struct fuse_dirents_s
-{
-  char                *buf;
-  uint64_t             buf_len;
-  uint64_t             data_len;
-  kvec_t(uint32_t)     offs;
-  fuse_dirents_type_t  type;
-};
+  int  fuse_dirents_init(fuse_dirents_t *d);
+  void fuse_dirents_free(fuse_dirents_t *d);
+  void fuse_dirents_reset(fuse_dirents_t *d);
 
-int  fuse_dirents_init(fuse_dirents_t *d);
-void fuse_dirents_free(fuse_dirents_t *d);
-void fuse_dirents_reset(fuse_dirents_t *d);
+  int  fuse_dirents_add(fuse_dirents_t      *d,
+                        const struct dirent *de,
+                        const uint64_t       namelen);
+  int  fuse_dirents_add_plus(fuse_dirents_t      *d,
+                             const struct dirent *de,
+                             const uint64_t       namelen,
+                             const fuse_entry_t  *entry,
+                             const struct stat   *st);
+  int  fuse_dirents_add_linux(fuse_dirents_t            *d,
+                              const struct linux_dirent *de,
+                              const uint64_t             namelen);
+  int  fuse_dirents_add_linux_plus(fuse_dirents_t            *d,
+                                   const struct linux_dirent *de,
+                                   const uint64_t             namelen,
+                                   const fuse_entry_t        *entry,
+                                   const struct stat         *st);
 
-int  fuse_dirents_add(fuse_dirents_t      *d,
-                      const struct dirent *de,
-                      const uint64_t       namelen);
-int  fuse_dirents_add_plus(fuse_dirents_t      *d,
-                           const struct dirent *de,
-                           const uint64_t       namelen,
-                           const fuse_entry_t  *entry,
-                           const struct stat   *st);
-int  fuse_dirents_add_linux(fuse_dirents_t            *d,
-                            const struct linux_dirent *de,
-                            const uint64_t             namelen);
-int  fuse_dirents_add_linux_plus(fuse_dirents_t            *d,
-                                 const struct linux_dirent *de,
-                                 const uint64_t             namelen,
-                                 const fuse_entry_t        *entry,
-                                 const struct stat         *st);
+  void *fuse_dirents_find(fuse_dirents_t *d,
+                          const uint64_t  ino);
 
-void *fuse_dirents_find(fuse_dirents_t *d,
-                        const uint64_t  ino);
-
-int fuse_dirents_convert_plus2normal(fuse_dirents_t *d);
+  int fuse_dirents_convert_plus2normal(fuse_dirents_t *d);
 
 #ifdef __cplusplus
 }
